@@ -180,7 +180,7 @@
 
         .terminal-log {
             position: absolute;
-            top: 40px; /* Adjusted to account for header */
+            top: 108px; /* Adjusted to account for header */
             left: 0;
             right: 0;
             bottom: 0;
@@ -276,6 +276,72 @@
         .results-table a:hover {
             opacity: 0.8;
         }
+
+        /* Terminal Controls */
+        .terminal-controls {
+            display: flex;
+            gap: 10px;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 8px 8px 0 0;
+        }
+
+        .search-box {
+            flex: 1;
+            padding: 8px;
+            border-radius: 4px;
+            border: 1px solid var(--primary-color);
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text-primary);
+        }
+
+        .control-button {
+            padding: 6px 12px;
+            border-radius: 4px;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .control-button:hover {
+            background: var(--primary-color-dark);
+            transform: translateY(-1px);
+        }
+
+        /* Export Dropdown */
+        .export-dropdown {
+            position: relative;
+            display: inline-block;
+        }
+
+        .export-options {
+            display: none;
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background: rgba(0, 0, 0, 0.2);
+            min-width: 120px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+            z-index: 1;
+            border-radius: 4px;
+            margin-top: 4px;
+        }
+
+        .export-options a {
+            color: var(--text-primary);
+            padding: 8px 12px;
+            text-decoration: none;
+            display: block;
+            transition: background 0.2s ease;
+        }
+
+        .export-options a:hover {
+            background: var(--primary-color);
+        }
+
+        /* Existing animations and styles remain unchanged */
     </style>
 </head>
 <body>
@@ -339,7 +405,7 @@
         <div class="main-content">
             <header class="header">
                 <h1>Hive Analytics Dashboard</h1>
-                <div class="real-time-badge">LIVE (Version: 0.1.2)</div>
+                <div class="real-time-badge">LIVE (Version: 0.1.4)</div>
             </header>
             <div class="stats-cards">
                 <div class="stat-card glass-effect">
@@ -370,6 +436,10 @@
             </div>
             <!-- Move log area above results -->
             <div class="log-area">
+                <div class="terminal-controls">
+                    <input type="text" class="search-box" placeholder="Search logs...">
+                    <button class="control-button clear-logs">Clear</button>
+                </div>
                 <h3>Activity Log</h3>
                 <div id="logEntries" class="terminal-log"></div>
             </div>
@@ -956,6 +1026,24 @@
                     }
                 });
             }
+
+            // Search functionality
+            const searchBox = document.querySelector('.search-box');
+            searchBox.addEventListener('input', (e) => {
+                const searchTerm = e.target.value.toLowerCase();
+                const logs = document.querySelectorAll('.log-entry');
+                logs.forEach(log => {
+                    const text = log.textContent.toLowerCase();
+                    log.style.display = text.includes(searchTerm) ? 'block' : 'none';
+                });
+            });
+
+            // Clear logs
+            const clearBtn = document.querySelector('.clear-logs');
+            clearBtn.addEventListener('click', () => {
+                const terminal = document.querySelector('.terminal-log');
+                terminal.innerHTML = '';
+            });
         });
 
         // Initial API status check
