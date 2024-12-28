@@ -73,7 +73,6 @@ Click column headers to sort by that column.
 findblacklistaccounts/
 ├── index.html      # Main application
 ├── README.md       # Documentation
-└── accounts2.txt   # Example accounts list
 ```
 
 ## License
