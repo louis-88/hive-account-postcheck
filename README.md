@@ -7,7 +7,8 @@ https://raw.githack.com/louis-88/hive-account-postcheck/main/index.html
 
 ## Screenshots
 ![image](https://github.com/user-attachments/assets/1ba9d814-fa60-4415-99eb-51708d6e9552)
-![image](https://github.com/user-attachments/assets/efe99fd5-8b14-437a-a327-85d51f00abd6)
+![image](https://github.com/user-attachments/assets/882ec42d-e2ff-4a88-bf5a-7929317b6e27)
+
 
 
 ## Features
