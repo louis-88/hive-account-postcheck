@@ -17,6 +17,7 @@ A real-time analytics dashboard for monitoring Hive blockchain accounts and thei
 - Enhanced activity logging with search and clear functionality
 - Pause/Resume functionality
 - Reblog filtering (shows only original content)
+- Configurable frontend selection for post links
 
 ## Settings
 
@@ -27,6 +28,11 @@ A real-time analytics dashboard for monitoring Hive blockchain accounts and thei
 - **Processes**: Number of concurrent processes
 - **API Call Delay**: Delay between API calls in seconds
 - **Batch Size**: Number of accounts to process in each batch
+- **Frontend**: Choose preferred frontend for post links
+  - PeakD (default)
+  - Hive.blog
+  - Ecency
+  - Inleo
 
 ## Activity Log Features
 
@@ -67,9 +73,9 @@ You can add/remove endpoints and enable/disable them as needed. The system autom
 The results table shows:
 - Username
 - Post Date
-- Link to Post
+- Link to Post (opens in selected frontend)
 - HBD Value
-- Post Title (truncated)
+- Post Title (truncated with full title on hover)
 
 Click column headers to sort by that column.
 
