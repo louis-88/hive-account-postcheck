@@ -1,0 +1,954 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hive Analytics Dashboard</title>
+    <style>
+        :root {
+            --glass-bg: rgba(255, 255, 255, 0.1);
+            --glass-border: rgba(255, 255, 255, 0.2);
+            --primary-color: #56b4ef;
+            --error-color: #ff6b6b;
+            --success-color: #4caf50;
+            --text-primary: #ffffff;
+            --text-secondary: rgba(255, 255, 255, 0.7);
+            --sidebar-width: 300px;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: linear-gradient(135deg, #1a1f35 0%, #2a3149 100%);
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+
+        .dashboard {
+            display: grid;
+            grid-template-columns: var(--sidebar-width) 1fr;
+            min-height: 100vh;
+        }
+
+        .sidebar {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 20px;
+            border-right: 1px solid var(--glass-border);
+            overflow-y: auto;
+        }
+
+        .main-content {
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.2);
+            margin: -20px -20px 20px -20px;
+            border-bottom: 1px solid var(--glass-border);
+        }
+
+        .stats-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .stat-value {
+            font-size: 32px;
+            font-weight: bold;
+            color: var(--primary-color);
+            margin: 10px 0;
+        }
+
+        .results-section {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        /* Enhanced table styles */
+        .results-table {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+        }
+
+        th {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 15px;
+            text-align: left;
+            font-weight: 500;
+            color: var(--primary-color);
+        }
+
+        td {
+            padding: 12px 15px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        tr:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        /* Enhanced form styles */
+        .settings-section {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .settings-section h3 {
+            margin-top: 0;
+            color: var(--primary-color);
+        }
+
+        input[type="number"], input[type="text"], textarea {
+            width: 100%;
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid var(--glass-border);
+            border-radius: 8px;
+            padding: 10px;
+            color: var(--text-primary);
+            margin-bottom: 10px;
+        }
+
+        button {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(86, 180, 239, 0.3);
+        }
+
+        .log-area {
+            height: 300px;
+            background: #1a1f35;
+            border-radius: 12px;
+            margin-top: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .terminal-log {
+            position: absolute;
+            top: 40px; /* Adjusted to account for header */
+            left: 0;
+            right: 0;
+            bottom: 0;
+            padding: 20px;
+            overflow-y: scroll;
+            font-family: 'Consolas', monospace;
+            font-size: 14px;
+            line-height: 1.4;
+            scroll-behavior: smooth;
+            background: #1a1f35;
+            color: #b4b4b4;
+        }
+
+        .terminal-log::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .terminal-log::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.2);
+        }
+
+        .terminal-log::-webkit-scrollbar-thumb {
+            background-color: var(--primary-color);
+            border-radius: 4px;
+        }
+
+        .live-update {
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; background: rgba(86, 180, 239, 0.2); }
+            to { opacity: 1; background: transparent; }
+        }
+
+        /* Add animation for status indicators */
+        .api-status {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-right: 8px;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 0.5; }
+            50% { opacity: 1; }
+            100% { opacity: 0.5; }
+        }
+
+        .api-refresh-btn {
+            background: transparent;
+            border: 1px solid var(--primary-color);
+            padding: 5px 10px;
+            font-size: 12px;
+            margin-bottom: 10px;
+        }
+
+        .api-refresh-btn:hover {
+            background: var(--primary-color);
+        }
+
+        .log-entry {
+            margin: 2px 0;
+            padding: 2px 8px;
+            font-size: 14px;
+            line-height: 1.4;
+        }
+
+        .log-entry.info { color: #56b4ef; }
+        .log-entry.error { color: #ff6b6b; }
+        .log-entry.success { color: #4caf50; }
+        .log-entry.warning { color: #ffd700; }
+        .log-entry.system { color: #b4b4b4; }
+        .log-entry.api { color: #da70d6; }
+        .log-entry.fetch { color: #87ceeb; }
+        .log-entry.process { color: #98fb98; }
+
+        .log-timestamp {
+            color: #666;
+            font-size: 0.9em;
+            margin-right: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard">
+        <div class="sidebar">
+            <h2>Settings</h2>
+            <div class="settings-section">
+                <h3>Parameters</h3>
+                <div class="setting-item">
+                    <span class="setting-label">Days to Look Back</span>
+                    <input type="number" id="daysBack" value="7" min="1" max="365">
+                </div>
+                <div class="setting-item">
+                    <span class="setting-label">Min HBD Threshold</span>
+                    <input type="number" id="hbdThreshold" value="0.001" step="0.001">
+                </div>
+                <div class="setting-item">
+                    <span class="setting-label">Retry Limit</span>
+                    <input type="number" id="retryLimit" value="5" min="1" max="10">
+                </div>
+                <div class="setting-item">
+                    <span class="setting-label">Timeout (seconds)</span>
+                    <input type="number" id="timeout" value="15" min="5" max="60">
+                </div>
+                <div class="setting-item">
+                    <span class="setting-label">Processes</span>
+                    <input type="number" id="processes" value="5" min="1" max="10">
+                </div>
+                <div class="setting-item">
+                    <span class="setting-label">API Call Delay (seconds)</span>
+                    <input type="number" id="apiCallDelay" value="1.5" step="0.1" min="0.1" max="5">
+                </div>
+                <div class="setting-item">
+                    <span class="setting-label">Batch Size</span>
+                    <input type="number" id="batchSize" value="10" min="10" max="1000" step="10">
+                </div>
+            </div>
+            <div class="settings-section">
+                <h3>Account List</h3>
+                <textarea id="accountsInput" rows="10" placeholder="Enter Hive accounts (one per line)"></textarea>
+                <div class="button-group">
+                    <button id="fetchDataBtn">Start Monitoring</button>
+                    <button id="loadFileBtn">Load from File</button>
+                </div>
+                <input type="file" id="fileInput" accept=".txt" style="display: none;">
+            </div>
+            <div class="settings-section">
+                <h3>API Endpoints</h3>
+                <button class="api-refresh-btn" onclick="updateApiStatuses()">
+                    Refresh Status
+                </button>
+                <div id="apiNodesList"></div>
+                <div class="api-input-group">
+                    <input type="text" id="newApiEndpoint" 
+                           placeholder="https://api.example.com" 
+                           class="api-input">
+                    <button onclick="addApiEndpoint()">Add</button>
+                </div>
+            </div>
+        </div>
+        <div class="main-content">
+            <header class="header">
+                <h1>Hive Analytics Dashboard</h1>
+                <div class="real-time-badge">LIVE</div>
+            </header>
+            <div class="stats-cards">
+                <div class="stat-card glass-effect">
+                    <h3>Total Accounts</h3>
+                    <div id="totalAccounts" class="stat-value">0</div>
+                </div>
+                <div class="stat-card glass-effect">
+                    <h3>Total Posts</h3>
+                    <div id="totalPosts" class="stat-value">0</div>
+                </div>
+                <div class="stat-card glass-effect">
+                    <h3>Total HBD Value</h3>
+                    <div id="totalValue" class="stat-value">0.000</div>
+                </div>
+                <div class="stat-card glass-effect">
+                    <h3>Next Update</h3>
+                    <div id="nextUpdate" class="stat-value refresh-timer">-</div>
+                </div>
+            </div>
+            <div class="progress-bar-container glass-effect" style="display: none; padding: 15px; margin-bottom: 20px;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                    <span>Processing Progress</span>
+                    <span id="progressText">0/0</span>
+                </div>
+                <div style="background: rgba(0,0,0,0.3); border-radius: 4px; height: 20px; overflow: hidden;">
+                    <div id="progressBar" style="background: var(--primary-color); height: 100%; width: 0%; transition: width 0.3s;"></div>
+                </div>
+            </div>
+            <div class="results-section">
+                <h2>Results</h2>
+                <div class="results-table" id="results"></div>
+            </div>
+            <div class="log-area">
+                <h3>Activity Log</h3>
+                <div id="logEntries" class="terminal-log"></div>
+            </div>
+        </div>
+    </div>
+    <script>
+        let HIVE_APIS = [
+            { url: "https://api.hive.blog", status: "unknown", enabled: true },
+            { url: "https://api.deathwing.me", status: "unknown", enabled: true },
+            { url: "https://api.openhive.network", status: "unknown", enabled: true },
+            { url: "https://techcoderx.com", status: "unknown", enabled: false },
+            { url: "https://api.c0ff33a.uk", status: "unknown", enabled: false },
+            { url: "https://rpc.mahdiyari.info", status: "unknown", enabled: false }
+        ];
+
+        const RETRY_LIMIT = 3; // Add this constant
+
+        let settings = {
+            daysBack: 7,
+            hbdThreshold: 0.001,
+            retryLimit: 5,
+            timeout: 15,
+            processes: 5,
+            apiCallDelay: 1.5,
+            isMonitoring: false,
+            batchSize: 10,
+            currentBatch: 0,
+            totalAccounts: 0,
+            isPaused: false
+        };
+
+        let accountQueue = [];
+        let processedAccounts = new Set();
+
+        let updateTimer;
+
+        async function checkApiStatus(apiUrl) {
+            try {
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), settings.timeout * 1000);
+                
+                const response = await fetch(apiUrl, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        jsonrpc: "2.0",
+                        method: "condenser_api.get_dynamic_global_properties",
+                        params: [],
+                        id: 1
+                    }),
+                    signal: controller.signal
+                });
+                
+                clearTimeout(timeoutId);
+                return response.ok;
+            } catch {
+                return false;
+            }
+        }
+
+        async function updateApiStatuses() {
+            const apiNodesList = document.getElementById('apiNodesList');
+            apiNodesList.innerHTML = '';
+
+            addLog(`Checking API endpoints status...`, 'api');
+
+            for (let api of HIVE_APIS) {
+                const status = await checkApiStatus(api.url);
+                api.status = status ? 'online' : 'offline';
+
+                apiNodesList.innerHTML += `
+                    <div class="api-node">
+                        <div>
+                            <span class="api-status ${api.status}"></span>
+                            ${api.url}
+                        </div>
+                        <span>${api.status}</span>
+                    </div>
+                `;
+            }
+        }
+
+        async function startMonitoring() {
+            const accounts = document.getElementById('accountsInput').value
+                .split('\n')
+                .map(a => a.trim())
+                .filter(Boolean);
+
+            if (!accounts.length) {
+                alert('Please enter at least one account');
+                return;
+            }
+
+            settings.isMonitoring = true;
+            settings.isPaused = false;
+            settings.totalAccounts = accounts.length;
+            settings.currentBatch = 0;
+            accountQueue = [...accounts];
+            processedAccounts.clear();
+            tableData = [];
+
+            document.querySelector('.progress-bar-container').style.display = 'block';
+            document.getElementById('fetchDataBtn').textContent = 'Pause Monitoring';
+            
+            initializeResultsTable();
+            processBatch();
+        }
+
+        function stopMonitoring() {
+            settings.isMonitoring = false;
+            settings.isPaused = false;
+            document.getElementById('fetchDataBtn').textContent = 'Start Monitoring';
+            document.querySelector('.progress-bar-container').style.display = 'none';
+        }
+
+        function pauseMonitoring() {
+            settings.isPaused = true;
+            document.getElementById('fetchDataBtn').textContent = 'Resume Monitoring';
+        }
+
+        async function updateData() {
+            const accounts = document.getElementById('accountsInput').value
+                .split('\n')
+                .map(a => a.trim())
+                .filter(Boolean);
+
+            if (!accounts.length) {
+                alert('Please enter at least one account');
+                return;
+            }
+
+            const onlineApis = HIVE_APIS.filter(api => api.status === 'online' && api.enabled);
+            if (!onlineApis.length) {
+                addLog('No online API endpoints available', 'error');
+                return;
+            }
+
+            document.getElementById('results').innerHTML = `
+                <table>
+                    <thead>
+                        <tr>
+                            <th onclick="sortTable(0)">Username</th>
+                            <th onclick="sortTable(1)">Date</th>
+                            <th>Link</th>
+                            <th onclick="sortTable(3)">HBD Value</th>
+                            <th onclick="sortTable(4)">Title</th>
+                        </tr>
+                    </thead>
+                    <tbody id="resultsBody"></tbody>
+                </table>
+            `;
+
+            try {
+                const chunks = chunkArray(accounts, onlineApis.length);
+                const results = [];
+
+                // Process chunks concurrently
+                const promises = chunks.map((chunk, index) => {
+                    const api = onlineApis[index % onlineApis.length];
+                    return processAccountChunk(chunk, api);
+                });
+
+                // Wait for all chunks to complete
+                await Promise.all(promises);
+                
+                if (!document.querySelector('#resultsBody tr')) {
+                    document.getElementById('results').innerHTML = '<div class="error">No posts found matching criteria</div>';
+                }
+
+                stopMonitoring();
+                addLog('Monitoring completed', 'success');
+            } catch (error) {
+                document.getElementById('results').innerHTML = `<div class="error">Error: ${error.message}</div>`;
+                stopMonitoring();
+                addLog('Monitoring stopped due to error', 'error');
+            }
+        }
+
+        async function processBatch() {
+            if (!settings.isMonitoring || settings.isPaused) return;
+
+            const onlineApis = HIVE_APIS.filter(api => api.status === 'online' && api.enabled);
+            if (!onlineApis.length) {
+                addLog('No online API endpoints available', 'error');
+                stopMonitoring();
+                return;
+            }
+
+            const batchSize = Math.min(settings.batchSize, accountQueue.length);
+            if (batchSize === 0) {
+                addLog('All accounts processed', 'success');
+                stopMonitoring();
+                return;
+            }
+
+            const batch = accountQueue.splice(0, batchSize);
+            const chunks = chunkArray(batch, onlineApis.length);
+
+            try {
+                const promises = chunks.map((chunk, index) => {
+                    const api = onlineApis[index % onlineApis.length];
+                    return processAccountChunk(chunk, api);
+                });
+
+                await Promise.all(promises);
+                
+                // Update progress
+                updateProgress();
+
+                // Process next batch with delay
+                if (accountQueue.length > 0) {
+                    setTimeout(() => processBatch(), 1000);
+                } else {
+                    addLog('Processing completed', 'success');
+                    stopMonitoring();
+                }
+            } catch (error) {
+                addLog(`Batch processing error: ${error.message}`, 'error');
+                pauseMonitoring();
+            }
+        }
+
+        async function processAccountChunk(accounts, api) {
+            const results = [];
+            for (const account of accounts) {
+                if (processedAccounts.has(account)) continue;
+                
+                try {
+                    const posts = await fetchRecentPosts(account, api);
+                    results.push(...posts);
+                    processedAccounts.add(account);
+                    await new Promise(resolve => setTimeout(resolve, settings.apiCallDelay * 1000));
+                } catch (error) {
+                    addLog(`Error processing ${account}: ${error.message}`, 'error');
+                    // Add to processed even if failed to avoid infinite retries
+                    processedAccounts.add(account);
+                }
+            }
+            return results;
+        }
+
+        async function addResultRow(post) {
+            const tbody = document.getElementById('resultsBody');
+            if (!tbody) return;
+
+            tableData.push(post);
+            updateStats(tableData);
+
+            // If table is sorted, re-render with new data
+            if (window.currentSort) {
+                renderSortedTable();
+            } else {
+                // If no sorting is applied, just prepend the new row
+                const row = document.createElement('tr');
+                row.className = 'live-update';
+                row.innerHTML = `
+                    <td>${post.username}</td>
+                    <td>${new Date(post.date).toLocaleString()}</td>
+                    <td><a href="${post.link}" target="_blank">View Post</a></td>
+                    <td>${post.value.toFixed(3)}</td>
+                    <td title="${post.title}">${post.title}</td>
+                `;
+                tbody.insertBefore(row, tbody.firstChild);
+            }
+        }
+
+        async function fetchRecentPosts(username, api) {
+            const sevenDaysAgo = new Date(Date.now() - settings.daysBack * 24 * 60 * 60 * 1000)
+                .toISOString().slice(0, 19);
+
+            addLog(`Fetching posts for ${username}`, 'fetch', `using ${api.url}`);
+
+            for (let retry = 0; retry < settings.retryLimit; retry++) {
+                try {
+                    const response = await fetch(api.url, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                            jsonrpc: "2.0",
+                            method: "condenser_api.get_discussions_by_blog",
+                            params: [{ tag: username, limit: 100 }],
+                            id: 1
+                        })
+                    });
+
+                    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                    
+                    const data = await response.json();
+                    if (!data.result) throw new Error('No result in response');
+
+                    addLog(`Successfully fetched data for ${username}`, 'success');
+
+                    const filteredPosts = data.result
+                        .filter(post => {
+                            const created = post.created;
+                            const payout = parseFloat(post.pending_payout_value.split(" ")[0]);
+                            return created >= sevenDaysAgo && payout > settings.hbdThreshold;
+                        })
+                        .map(post => ({
+                            username,
+                            date: post.created,
+                            link: `https://peakd.com${post.url}`,
+                            value: parseFloat(post.pending_payout_value),
+                            title: post.title.length > 40 ? post.title.substring(0, 40) + '...' : post.title
+                        }));
+
+                    // Add posts to table in real-time
+                    for (const post of filteredPosts) {
+                        await addResultRow(post);
+                    }
+
+                    return filteredPosts;
+                } catch (error) {
+                    addLog(`Error fetching ${username} (attempt ${retry + 1}/${settings.retryLimit}): ${error.message}`, 'error');
+                    if (retry < settings.retryLimit - 1) {
+                        await new Promise(resolve => setTimeout(resolve, 1000 * (retry + 1)));
+                    }
+                }
+            }
+            throw new Error(`Failed to fetch data for ${username} after ${settings.retryLimit} attempts`);
+        }
+
+        function chunkArray(array, chunks) {
+            const result = Array(Math.ceil(array.length / chunks))
+                .fill()
+                .map((_, index) => array.slice(index * chunks, (index + 1) * chunks));
+            return result;
+        }
+
+        function calculateReputation(raw) {
+            if (raw === 0) return 25;
+            const rep = raw / 1e6;
+            return Math.round((9 * rep + 25) * 100) / 100;
+        }
+
+        function generateTable(data) {
+            return `
+                <table>
+                    <thead>
+                        <tr>
+                            <th onclick="sortTable(0)">Username</th>
+                            <th onclick="sortTable(1)">Date</th>
+                            <th>Link</th>
+                            <th onclick="sortTable(3)">HBD Value</th>
+                            <th onclick="sortTable(4)">Title</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${data.map(row => `
+                            <tr>
+                                <td>${row.username}</td>
+                                <td>${new Date(row.date).toLocaleString()}</td>
+                                <td><a href="${row.link}" target="_blank">View Post</a></td>
+                                <td>${row.value.toFixed(3)}</td>
+                                <td title="${row.title}">${row.title}</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
+        }
+
+        let tableData = [];
+        function sortTable(column) {
+            const directions = ['asc', 'desc'];
+            const currentDir = this.sortDirection = this.sortDirection === directions[0] ? directions[1] : directions[0];
+            
+            // Store sort preferences
+            window.currentSort = {
+                column: column,
+                direction: currentDir
+            };
+            
+            renderSortedTable();
+        }
+
+        // Add new function for rendering sorted data
+        function renderSortedTable() {
+            if (!window.currentSort) return;
+            
+            const { column, direction } = window.currentSort;
+            const sortedData = [...tableData].sort((a, b) => {
+                let valueA = Object.values(a)[column];
+                let valueB = Object.values(b)[column];
+                
+                if (typeof valueA === 'string') valueA = valueA.toLowerCase();
+                if (typeof valueB === 'string') valueB = valueB.toLowerCase();
+                
+                if (valueA < valueB) return direction === 'asc' ? -1 : 1;
+                if (valueA > valueB) return direction === 'asc' ? 1 : -1;
+                return 0;
+            });
+            
+            const tbody = document.getElementById('resultsBody');
+            if (!tbody) return;
+            
+            tbody.innerHTML = sortedData.map(row => `
+                <tr>
+                    <td>${row.username}</td>
+                    <td>${new Date(row.date).toLocaleString()}</td>
+                    <td><a href="${row.link}" target="_blank">View Post</a></td>
+                    <td>${row.value.toFixed(3)}</td>
+                    <td title="${row.title}">${row.title}</td>
+                </tr>
+            `).join('');
+        }
+
+        function addLog(message, type = 'info', details = '') {
+            const logEntry = document.createElement('div');
+            logEntry.className = `log-entry ${type}`;
+            const timestamp = new Date().toLocaleTimeString();
+            
+            let icon = '';
+            switch(type) {
+                case 'error': icon = '❌ '; break;
+                case 'success': icon = '✅ '; break;
+                case 'warning': icon = '⚠️ '; break;
+                case 'api': icon = '🔌 '; break;
+                case 'fetch': icon = '📥 '; break;
+                case 'process': icon = '⚙️ '; break;
+                case 'info': icon = 'ℹ️ '; break;
+                default: icon = '• ';
+            }
+
+            logEntry.innerHTML = `
+                <span class="log-timestamp">[${timestamp}]</span>
+                ${icon}${message}
+                ${details ? `<span style="color: #666"> | ${details}</span>` : ''}
+            `;
+            
+            const logArea = document.getElementById('logEntries');
+            logArea.appendChild(logEntry);
+            
+            requestAnimationFrame(() => {
+                logArea.scrollTop = logArea.scrollHeight;
+            });
+        }
+
+        function updateStats(results) {
+            const accounts = new Set(results.map(r => r.username));
+            document.getElementById('totalAccounts').textContent = accounts.size;
+            document.getElementById('totalPosts').textContent = results.length;
+            document.getElementById('totalValue').textContent = 
+                results.reduce((sum, post) => sum + post.value, 0).toFixed(3);
+        }
+
+        function updateApiNodesList() {
+            const apiNodesList = document.getElementById('apiNodesList');
+            apiNodesList.innerHTML = HIVE_APIS.map(api => `
+                <div class="api-endpoint">
+                    <input type="checkbox" 
+                        ${api.enabled ? 'checked' : ''} 
+                        onchange="toggleApiEndpoint('${api.url}')">
+                    <span>${api.url}</span>
+                    <span class="api-status-dot ${api.status}"></span>
+                </div>
+            `).join('');
+        }
+
+        function toggleApiEndpoint(url) {
+            const api = HIVE_APIS.find(api => api.url === url);
+            if (api) {
+                api.enabled = !api.enabled;
+                addLog(`${api.url} ${api.enabled ? 'enabled' : 'disabled'}`, 'info');
+            }
+        }
+
+        function addApiEndpoint() {
+            const input = document.getElementById('newApiEndpoint');
+            const url = input.value.trim();
+            
+            if (!url) return;
+            
+            try {
+                new URL(url);
+                if (!HIVE_APIS.some(api => api.url === url)) {
+                    HIVE_APIS.push({ url, status: "unknown", enabled: true });
+                    addLog(`Added new API endpoint: ${url}`, 'success');
+                    updateApiNodesList();
+                    checkApiStatus(url);
+                }
+                input.value = '';
+            } catch (e) {
+                addLog(`Invalid URL format: ${url}`, 'error');
+            }
+        }
+
+        function updateProgress() {
+            const processed = processedAccounts.size;
+            const total = settings.totalAccounts;
+            const percentage = (processed / total * 100).toFixed(1);
+            
+            document.getElementById('progressBar').style.width = `${percentage}%`;
+            document.getElementById('progressText').textContent = `${processed}/${total} (${percentage}%)`;
+        }
+
+        function initializeResultsTable() {
+            window.currentSort = null;
+            document.getElementById('results').innerHTML = `
+                <table>
+                    <thead>
+                        <tr>
+                            <th onclick="sortTable(0)">Username</th>
+                            <th onclick="sortTable(1)">Date</th>
+                            <th>Link</th>
+                            <th onclick="sortTable(3)">HBD Value</th>
+                            <th onclick="sortTable(4)">Title</th>
+                        </tr>
+                    </thead>
+                    <tbody id="resultsBody"></tbody>
+                </table>
+            `;
+        }
+
+        document.getElementById('fetchDataBtn').addEventListener('click', () => {
+            if (!settings.isMonitoring) {
+                startMonitoring();
+            } else if (settings.isPaused) {
+                settings.isPaused = false;
+                document.getElementById('fetchDataBtn').textContent = 'Pause Monitoring';
+                processBatch();
+            } else {
+                pauseMonitoring();
+            }
+        });
+
+        document.getElementById('loadFileBtn').addEventListener('click', () => {
+            document.getElementById('fileInput').click();
+        });
+
+        document.getElementById('fileInput').addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                document.getElementById('accountsInput').value = e.target.result;
+            };
+            reader.readAsText(file);
+        });
+
+        document.addEventListener('DOMContentLoaded', () => {
+            updateApiStatuses();
+            // Remove the interval check
+            // setInterval(updateApiStatuses, 60000);
+
+            document.getElementById('daysBack').addEventListener('change', e => {
+                settings.daysBack = parseInt(e.target.value);
+                addLog(`Updated days back to ${settings.daysBack}`);
+            });
+
+            document.getElementById('hbdThreshold').addEventListener('change', e => {
+                settings.hbdThreshold = parseFloat(e.target.value);
+                addLog(`Updated HBD threshold to ${settings.hbdThreshold}`);
+            });
+
+            document.getElementById('refreshInterval').addEventListener('change', e => {
+                settings.refreshInterval = parseInt(e.target.value);
+                if (settings.isMonitoring) {
+                    stopMonitoring();
+                    startMonitoring();
+                }
+            });
+
+            document.getElementById('retryLimit').addEventListener('change', e => {
+                settings.retryLimit = parseInt(e.target.value);
+                addLog(`Updated retry limit to ${settings.retryLimit}`);
+            });
+
+            document.getElementById('timeout').addEventListener('change', e => {
+                settings.timeout = parseInt(e.target.value);
+                addLog(`Updated timeout to ${settings.timeout}s`);
+            });
+
+            document.getElementById('processes').addEventListener('change', e => {
+                settings.processes = parseInt(e.target.value);
+                addLog(`Updated processes to ${settings.processes}`);
+            });
+
+            document.getElementById('apiCallDelay').addEventListener('change', e => {
+                settings.apiCallDelay = parseFloat(e.target.value);
+                addLog(`Updated API call delay to ${settings.apiCallDelay}s`);
+            });
+
+            document.getElementById('batchSize').addEventListener('change', e => {
+                settings.batchSize = parseInt(e.target.value);
+                addLog(`Updated batch size to ${settings.batchSize}`, 'system');
+            });
+
+            updateApiNodesList();
+        });
+
+        // Initial API status check
+        (async function checkInitialApiStatus() {
+            for (let api of HIVE_APIS) {
+                const isOnline = await checkApiStatus(api.url);
+                api.status = isOnline ? 'online' : 'offline';
+            }
+            updateApiNodesList();
+        })();
+    </script>
+</body>
+</html>
