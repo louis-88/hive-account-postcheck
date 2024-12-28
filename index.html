@@ -143,7 +143,7 @@
         }
 
         input[type="number"], input[type="text"], textarea {
-            width: 100%;
+            width: 90%;
             background: rgba(0, 0, 0, 0.2);
             border: 1px solid var(--glass-border);
             border-radius: 8px;
@@ -342,6 +342,22 @@
         }
 
         /* Existing animations and styles remain unchanged */
+        .frontend-select {
+            width: 100%;
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid var(--glass-border);
+            border-radius: 8px;
+            padding: 10px;
+            color: var(--text-primary);
+            margin-bottom: 10px;
+            cursor: pointer;
+        }
+
+        .frontend-select option {
+            background: #1a1f35;
+            color: var(--text-primary);
+            padding: 10px;
+        }
     </style>
 </head>
 <body>
@@ -377,6 +393,15 @@
                 <div class="setting-item">
                     <span class="setting-label">Batch Size</span>
                     <input type="number" id="batchSize" value="10" min="10" max="1000" step="10">
+                </div>
+                <div class="setting-item">
+                    <span class="setting-label">Frontend</span>
+                    <select id="frontendSelect" class="frontend-select">
+                        <option value="https://peakd.com">PeakD</option>
+                        <option value="https://hive.blog">Hive.blog</option>
+                        <option value="https://ecency.com">Ecency</option>
+                        <option value="https://inleo.io">Inleo</option>
+                    </select>
                 </div>
             </div>
             <div class="settings-section">
@@ -472,7 +497,8 @@
             batchSize: 10,
             currentBatch: 0,
             totalAccounts: 0,
-            isPaused: false
+            isPaused: false,
+            frontend: "https://peakd.com",
         };
 
         let accountQueue = [];
@@ -750,7 +776,7 @@
                         .map(post => ({
                             username,
                             date: post.created,
-                            link: `https://peakd.com${post.url}`,
+                            link: `${settings.frontend}${post.url}`,
                             value: parseFloat(post.pending_payout_value),
                             title: post.title.length > 40 ? post.title.substring(0, 40) + '...' : post.title
                         }));
@@ -1026,6 +1052,12 @@
                     }
                 });
             }
+
+            // Frontend select handler
+            document.getElementById('frontendSelect').addEventListener('change', (e) => {
+                settings.frontend = e.target.value;
+                addLog(`Updated frontend to ${e.target.selectedOptions[0].text}`, 'system');
+            });
 
             // Search functionality
             const searchBox = document.querySelector('.search-box');
