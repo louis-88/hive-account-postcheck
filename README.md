@@ -2,6 +2,12 @@
 
 A real-time analytics dashboard for monitoring Hive blockchain accounts and their post payouts.
 
+## Sreenshots
+![image](https://github.com/user-attachments/assets/36e16ef3-b6b2-47bf-82b9-24fb5a8e31ae)
+
+![image](https://github.com/user-attachments/assets/707ac15c-24d7-4bec-9ed4-671781a89910)
+
+
 ## Features
 
 - Real-time monitoring of multiple Hive accounts
