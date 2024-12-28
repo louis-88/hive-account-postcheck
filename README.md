@@ -99,7 +99,7 @@ Click column headers to sort by that column.
 ## File Structure
 
 ```
-findblacklistaccounts/
+/
 ├── index.html      # Main application
 ├── README.md       # Documentation
 ```
