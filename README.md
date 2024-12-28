@@ -2,9 +2,13 @@
 
 A real-time analytics dashboard for monitoring Hive blockchain accounts and their post payouts.
 
+## Live Version
+https://raw.githack.com/louis-88/hive-account-postcheck/main/index.html
+
 ## Screenshots
-![image](https://github.com/user-attachments/assets/36e16ef3-b6b2-47bf-82b9-24fb5a8e31ae)
-![image](https://github.com/user-attachments/assets/707ac15c-24d7-4bec-9ed4-671781a89910)
+![image](https://github.com/user-attachments/assets/1ba9d814-fa60-4415-99eb-51708d6e9552)
+![image](https://github.com/user-attachments/assets/efe99fd5-8b14-437a-a327-85d51f00abd6)
+
 
 ## Features
 
