@@ -258,7 +258,7 @@
     <div class="dashboard">
         <div class="sidebar">
             <h2>Settings</h2>
-            <div class="settings-section">
+            <div class="settings-section" id="parameters-section">
                 <h3>Parameters</h3>
                 <div class="setting-item">
                     <span class="setting-label">Days to Look Back</span>
@@ -892,53 +892,40 @@
 
         document.addEventListener('DOMContentLoaded', () => {
             updateApiStatuses();
-            // Remove the interval check
-            // setInterval(updateApiStatuses, 60000);
-
-            document.getElementById('daysBack').addEventListener('change', e => {
-                settings.daysBack = parseInt(e.target.value);
-                addLog(`Updated days back to ${settings.daysBack}`);
-            });
-
-            document.getElementById('hbdThreshold').addEventListener('change', e => {
-                settings.hbdThreshold = parseFloat(e.target.value);
-                addLog(`Updated HBD threshold to ${settings.hbdThreshold}`);
-            });
-
-            document.getElementById('refreshInterval').addEventListener('change', e => {
-                settings.refreshInterval = parseInt(e.target.value);
-                if (settings.isMonitoring) {
-                    stopMonitoring();
-                    startMonitoring();
-                }
-            });
-
-            document.getElementById('retryLimit').addEventListener('change', e => {
-                settings.retryLimit = parseInt(e.target.value);
-                addLog(`Updated retry limit to ${settings.retryLimit}`);
-            });
-
-            document.getElementById('timeout').addEventListener('change', e => {
-                settings.timeout = parseInt(e.target.value);
-                addLog(`Updated timeout to ${settings.timeout}s`);
-            });
-
-            document.getElementById('processes').addEventListener('change', e => {
-                settings.processes = parseInt(e.target.value);
-                addLog(`Updated processes to ${settings.processes}`);
-            });
-
-            document.getElementById('apiCallDelay').addEventListener('change', e => {
-                settings.apiCallDelay = parseFloat(e.target.value);
-                addLog(`Updated API call delay to ${settings.apiCallDelay}s`);
-            });
-
-            document.getElementById('batchSize').addEventListener('change', e => {
-                settings.batchSize = parseInt(e.target.value);
-                addLog(`Updated batch size to ${settings.batchSize}`, 'system');
-            });
-
             updateApiNodesList();
+            
+            // Add a unique ID to the parameters section in HTML
+            const parametersSection = document.querySelector('#parameters-section');
+            
+            if (parametersSection) {
+                parametersSection.addEventListener('change', (e) => {
+                    const input = e.target;
+                    if (!input.id) return;
+
+                    const settingsMap = {
+                        'daysBack': { label: 'days back', type: 'int' },
+                        'hbdThreshold': { label: 'HBD threshold', type: 'float' },
+                        'retryLimit': { label: 'retry limit', type: 'int' },
+                        'timeout': { label: 'timeout', type: 'int', suffix: 's' },
+                        'processes': { label: 'processes', type: 'int' },
+                        'apiCallDelay': { label: 'API call delay', type: 'float', suffix: 's' },
+                        'batchSize': { label: 'batch size', type: 'int' }
+                    };
+
+                    const setting = settingsMap[input.id];
+                    if (!setting) return;
+
+                    const value = setting.type === 'float' 
+                        ? parseFloat(input.value) 
+                        : parseInt(input.value);
+
+                    if (!isNaN(value)) {
+                        settings[input.id] = value;
+                        const suffix = setting.suffix || '';
+                        addLog(`Updated ${setting.label} to ${value}${suffix}`, 'system');
+                    }
+                });
+            }
         });
 
         // Initial API status check
