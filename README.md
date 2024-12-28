@@ -2,11 +2,9 @@
 
 A real-time analytics dashboard for monitoring Hive blockchain accounts and their post payouts.
 
-## Sreenshots
+## Screenshots
 ![image](https://github.com/user-attachments/assets/36e16ef3-b6b2-47bf-82b9-24fb5a8e31ae)
-
 ![image](https://github.com/user-attachments/assets/707ac15c-24d7-4bec-9ed4-671781a89910)
-
 
 ## Features
 
@@ -14,10 +12,11 @@ A real-time analytics dashboard for monitoring Hive blockchain accounts and thei
 - Batch processing with configurable size
 - Multiple API endpoint support with load balancing
 - Post filtering by date and payout value
-- Sortable results table
+- Sortable results table with live updates
 - Live progress tracking
-- Detailed activity logging
+- Enhanced activity logging with search and clear functionality
 - Pause/Resume functionality
+- Reblog filtering (shows only original content)
 
 ## Settings
 
@@ -29,17 +28,31 @@ A real-time analytics dashboard for monitoring Hive blockchain accounts and thei
 - **API Call Delay**: Delay between API calls in seconds
 - **Batch Size**: Number of accounts to process in each batch
 
+## Activity Log Features
+
+- Real-time log updates
+- Search functionality for filtering log entries
+- Clear logs button
+- Color-coded log entries by type:
+  - Info (blue)
+  - Success (green)
+  - Error (red)
+  - Warning (yellow)
+  - API (purple)
+  - Fetch (light blue)
+  - Process (light green)
+
 ## API Endpoints
 
 Default endpoints included:
-- api.hive.blog
-- api.deathwing.me
-- api.openhive.network
-- techcoderx.com
-- api.c0ff33a.uk
-- rpc.mahdiyari.info
+- api.hive.blog (enabled)
+- api.deathwing.me (enabled)
+- api.openhive.network (enabled)
+- techcoderx.com (disabled)
+- api.c0ff33a.uk (disabled)
+- rpc.mahdiyari.info (disabled)
 
-You can add/remove endpoints and enable/disable them as needed.
+You can add/remove endpoints and enable/disable them as needed. The system automatically checks endpoint status and uses only online endpoints.
 
 ## Usage
 
